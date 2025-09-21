@@ -25,9 +25,42 @@ def call_llm(text: str):
             }]
         )
         
-        # Parse JSON response
+        # Get the content and debug
         content = response.choices[0].message.content
-        return json.loads(content)
+        print(f"LLM Response: {repr(content)}")  # Debug line
+
+        # Clean up the response (remove markdown code blocks if present)
+        if content.startswith("```json"):
+            content = content[7:]
+        elif content.startswith("```"):
+            content = content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+
+        content = content.strip()
+
+        # Check if content is empty
+        if not content or not content.strip():
+            print("Empty response from LLM")
+            return {
+                "summary": "Empty response from LLM",
+                "title": "Error",
+                "topics": ["error"],
+                "sentiment": "neutral"
+            }
+        
+        # Try to parse JSON
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError as json_err:
+            print(f"JSON parsing error: {json_err}")
+            print(f"Raw content: {content}")
+            return {
+                "summary": "Invalid JSON response from LLM",
+                "title": "Error",
+                "topics": ["error"],
+                "sentiment": "neutral"
+            }
         
     except Exception as e:
         # Handle LLM API failure as required by assignment
@@ -39,11 +72,11 @@ def call_llm(text: str):
             "sentiment": "neutral"
         }
 
-
+# Mock version (commented out)
 # def call_llm(text: str):
 #     return {
-#         "summary": "Mock summary.",
+#         "summary": f"This is a mock summary for: {text[:50]}...",
 #         "title": "Mock Title",
-#         "topics": ["topic1", "topic2", "topic3"],
-#         "sentiment": "neutral"
+#         "topics": ["technology", "artificial intelligence", "machine learning"],
+#         "sentiment": "positive"
 #     }

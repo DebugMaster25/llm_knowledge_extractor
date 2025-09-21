@@ -4,14 +4,16 @@ A FastAPI-based service that extracts structured data from text using OpenAI's G
 
 ## Setup
 
+### Option 1: Local Development
+
 1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Set OpenAI API key:
+2. Create `.env` file:
 ```bash
-export OPENAI_API_KEY="your-api-key-here"
+echo "OPENAI_API_KEY=your-api-key-here" > .env
 ```
 
 3. Run the server:
@@ -19,38 +21,66 @@ export OPENAI_API_KEY="your-api-key-here"
 uvicorn main:app --reload
 ```
 
+**Note**: On first run, NLTK will automatically download required data files. This may take a few minutes.
+
+### Option 2: Docker
+
+1. Build the Docker image:
+```bash
+docker build -t llm-knowledge-extractor .
+```
+
+2. Run the container:
+```bash
+docker run -p 8000:8000 -e OPENAI_API_KEY="your-api-key-here" llm-knowledge-extractor
+```
+
+### Option 3: Docker Compose
+
+1. Create `.env` file:
+```bash
+echo "OPENAI_API_KEY=your-api-key-here" > .env
+```
+
+2. Run with Docker Compose:
+```bash
+docker-compose up --build
+```
+
 ## API Endpoints
 
 - `POST /analyze` - Analyze text and extract metadata
-  - Request body: `{"text": "Your text here"}`
-  - Returns: summary, title, topics, sentiment, keywords
-
 - `GET /search?topic=xyz` - Search analyses by topic or keyword
-  - Returns: All analyses matching the topic/keyword
+
+**API Documentation**: Once running, visit `http://localhost:8000/docs` for interactive API testing.
 
 ## Design Choices
 
-- **FastAPI**: Chosen for its automatic API documentation and type safety with Pydantic models
-- **SQLite**: Lightweight database perfect for prototyping, no external dependencies
-- **NLTK**: Reliable NLP library for keyword extraction using POS tagging
-- **Modular structure**: Separated concerns into distinct modules (llm.py, keywords.py, db.py) for maintainability
-- **Error handling**: Graceful degradation when LLM API fails, returns error message instead of crashing
+- **FastAPI**: Chosen for its automatic API documentation and type safety
+- **SQLite**: Lightweight database perfect for prototyping
+- **NLTK**: Reliable NLP library for keyword extraction with graceful fallback
+- **Docker**: Containerized for easy deployment and consistency
+- **Modular structure**: Separated concerns into distinct modules for maintainability
 
 ## Trade-offs Made
 
-- Used SQLite instead of PostgreSQL for simplicity and zero setup
-- Basic error handling instead of comprehensive logging system
-- Simple keyword extraction using noun frequency instead of advanced NLP techniques
-- No authentication/rate limiting for prototype simplicity
-- No caching layer to keep it lightweight
+- Used SQLite instead of PostgreSQL for simplicity
+- Basic error handling instead of comprehensive logging
+- Simple keyword extraction instead of advanced NLP techniques
+- Docker for deployment simplicity over Kubernetes
+- Graceful fallback for NLTK issues instead of complex setup requirements
 
-## Core Requirements Met
+## Troubleshooting
 
-✅ Text input processing  
-✅ LLM integration with structured JSON output  
-✅ Keyword extraction (3 most frequent nouns)  
-✅ SQLite persistence  
-✅ REST API with analyze and search endpoints  
-✅ Error handling for empty input and LLM failures  
-✅ 1-2 sentence summaries  
-✅ Structured metadata extraction
+### OpenAI API Errors
+- **Quota exceeded**: Check your OpenAI account billing and usage
+- **Invalid API key**: Verify your API key in the `.env` file
+- **Network issues**: The service will return fallback responses for API failures
+
+### NLTK Issues
+- **Data download fails**: The service will automatically fall back to simple keyword extraction
+- **Permission errors**: Ensure you have write access to the NLTK data directory
+
+### General Issues
+- **Port already in use**: Change the port with `uvicorn main:app --reload --port 8001`
+- **Database errors**: Delete `analyses.db` to reset the database
