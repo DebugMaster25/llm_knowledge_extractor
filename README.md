@@ -47,12 +47,28 @@ echo "OPENAI_API_KEY=your-api-key-here" > .env
 docker-compose up --build
 ```
 
+## Testing the Service
+
+### Web Interface (Recommended)
+Once your backend is running on `http://localhost:8000`, you can use the web interface for easy testing:
+
+**[ Open Web Interface](https://llm-summarizer.lovable.app/)**
+
+The web interface automatically connects to your local server on port 8000, providing a user-friendly way to:
+- Submit text for analysis
+- View extracted summaries, topics, and keywords
+- Search through previous analyses
+- Test the API without using external tools
+
+### API Documentation
+Alternatively, you can use the built-in API documentation:
+- Visit `http://localhost:8000/docs` for interactive API testing
+- Visit `http://localhost:8000/redoc` for alternative documentation
+
 ## API Endpoints
 
 - `POST /analyze` - Analyze text and extract metadata
 - `GET /search?topic=xyz` - Search analyses by topic or keyword
-
-**API Documentation**: Once running, visit `http://localhost:8000/docs` for interactive API testing.
 
 ## Design Choices
 
@@ -60,6 +76,7 @@ docker-compose up --build
 - **SQLite**: Lightweight database perfect for prototyping
 - **NLTK**: Reliable NLP library for keyword extraction with graceful fallback
 - **Docker**: Containerized for easy deployment and consistency
+- **Web Interface**: User-friendly frontend for easy testing and demonstration
 - **Modular structure**: Separated concerns into distinct modules for maintainability
 
 ## Trade-offs Made
@@ -69,6 +86,7 @@ docker-compose up --build
 - Simple keyword extraction instead of advanced NLP techniques
 - Docker for deployment simplicity over Kubernetes
 - Graceful fallback for NLTK issues instead of complex setup requirements
+- External web interface instead of building a full-stack application
 
 ## Troubleshooting
 
@@ -80,6 +98,10 @@ docker-compose up --build
 ### NLTK Issues
 - **Data download fails**: The service will automatically fall back to simple keyword extraction
 - **Permission errors**: Ensure you have write access to the NLTK data directory
+
+### Web Interface Issues
+- **Connection failed**: Ensure your backend is running on `http://localhost:8000`
+- **CORS errors**: The backend includes CORS middleware for web interface compatibility
 
 ### General Issues
 - **Port already in use**: Change the port with `uvicorn main:app --reload --port 8001`
